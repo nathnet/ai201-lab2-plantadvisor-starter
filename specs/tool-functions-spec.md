@@ -70,7 +70,14 @@ likely match for clean user input. Aliases are the broadest net, so they go last
 *Aliases are stored as a list of strings. How will you check if the normalized input matches any alias in the list? Write your approach in pseudocode or plain English.*
 
 ```
-[your answer here]
+With small plants database and infrequent lookup, the approach would be a linear scan through all the aliases for each plant.
+If an alias match the normalized input, return the full plant dict.
+
+An alternative approach for a larger database with more frequent reads, a reverse lookup dict would be created at module load time.
+The loading would loop through all plant aliases and created an entry where the alias would be key with the value as the plant name in normal database.
+The lookup would then take O(1) as all aliases would be hashed already, and ready to be compared to the hashed input.
+
+Since scientific name is briefly mentioned in the input contract, I'd also include the normalized scientific name into the dict.
 ```
 
 ---
@@ -80,7 +87,8 @@ likely match for clean user input. Aliases are the broadest net, so they go last
 *When a plant isn't found, the agent will read your message and use it to decide what to tell the user. Write the exact string you'll return — make it useful to the agent, not just to a human reading logs.*
 
 ```
-[your answer here]
+Provided alias {normalized_name} cannot be found in the database. Try searching by common name, scientific name, 
+or a known alias such as "devil's ivy" or "snake plant".
 ```
 
 ---
@@ -91,17 +99,19 @@ likely match for clean user input. Aliases are the broadest net, so they go last
 
 **Test: does `"devil's ivy"` return the pothos entry?**
 ```
-[yes / no — if no, describe what happened]
+yes
 ```
 
 **Test: does `"SNAKE PLANT"` return the snake plant entry?**
 ```
-[yes / no — if no, describe what happened]
+yes
 ```
 
 **One edge case you discovered while implementing:**
 ```
-[your answer here]
+Key lookup needs a separate string formatting to work for a O(1) lookup.
+
+Another is not quite an edge case, but scientific name was missing in steps to implement in the comment. So I added it.
 ```
 
 ---
@@ -183,12 +193,12 @@ The full season dict from `_season_data`, plus a `detected_season` boolean. Exam
 
 **Test: does calling with `season=None` return the correct season for the current month?**
 ```
-Current month: [month]
-Expected season: [season]
-Returned season: [season]
+Current month: 6
+Expected season: summer
+Returned season: summer
 ```
 
 **Test: does calling with `season="winter"` return winter data regardless of the current month?**
 ```
-[yes / no]
+yes
 ```

@@ -62,20 +62,18 @@ with gr.Blocks(title="Plant Advisor") as demo:
         with gr.Column(scale=3):
             chatbot = gr.ChatInterface(
                 fn=chat,
-                type="messages",
                 examples=EXAMPLE_QUESTIONS,
                 chatbot=gr.Chatbot(
                     height=520,
                     placeholder="<em>Ask me about your plants...</em>",
                     show_label=False,
-                    type="messages",
                 ),
                 textbox=gr.Textbox(
                     placeholder="e.g. How often should I water my monstera?",
                     show_label=False,
                     scale=7,
                     submit_btn="Ask",
-                ),
+                )
             )
 
 if __name__ == "__main__":
@@ -85,5 +83,4 @@ if __name__ == "__main__":
             secondary_hue="emerald",
             neutral_hue="stone",
             font=[gr.themes.GoogleFont("Inter"), "sans-serif"],
-        )
-    )
+        ))

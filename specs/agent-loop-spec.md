@@ -122,7 +122,12 @@ for tool_call in assistant_message.tool_calls:
 *The loop should stop when: (a) the LLM returns a response with no tool calls, OR (b) the MAX_TOOL_ROUNDS limit is reached. Describe how you will detect each condition and what you will return in each case.*
 
 ```
-[your answer here]
+The agent will run in a loop tracking how many rounds of tool calls have been going on against the MAX_TOOL_ROUNDS.
+If the counter is equal to or higher than max rounds, the loop will stop and the default result will be return.
+An example result is "The agent has hit the round limit without an answer."
+
+Inside the round-tracking loop, there is an if check to see if there are still tool calls left in the message.
+If yes, it calls another tool. Otherwise, it will return the results from the response.choices[0].message.content.
 ```
 
 ---
@@ -132,7 +137,11 @@ for tool_call in assistant_message.tool_calls:
 *Once the loop exits because there are no more tool calls, how do you extract the text content from the response object? What field holds the string you should return?*
 
 ```
-[your answer here]
+response.choices[0].message.content field holds the response from the agent based on the last tool call results.
+
+The results can be extracted from that field to return to the LLM for response generation.
+If the tool returns None, provide a generic fallback response: 
+"Something went wrong on my end — I didn't receive a response. Please try again."
 ```
 
 ---
@@ -145,19 +154,20 @@ for tool_call in assistant_message.tool_calls:
 
 ```
 Query: "How should I care for my calathea?"
-Round 1 tool call: [tool name, args]
-Round 2 tool call: [tool name, args] (if any)
-Final response: [brief description]
+Round 1 tool call: lookup_plant({'plant_name': 'calathea'})
+Round 2 tool call: N/a
+Final response: Referencing care data for calathea, the LLM mentions watering, light needs, humidity, temperature, and fertilizer. It also mentions common issues to watch out and the causes.
 ```
 
 **What happens when you ask about a plant that isn't in the database?**
 
 ```
-[describe the behavior you observed]
+It briefly states that the plant is not in the database, but proceeds to provide general guidance based on its training data.
+Though it also refers the user to local nursery or gardening expert for further care information.
 ```
 
 **One thing about the tool call API that surprised you:**
 
 ```
-[your answer here]
+I'm surprised by how it just goes through several tool calls and is still able to get the final summarized response for the user.
 ```

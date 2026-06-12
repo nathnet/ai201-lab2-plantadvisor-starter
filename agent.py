@@ -1,6 +1,6 @@
 import json
 from groq import Groq
-from config import GROQ_API_KEY, LLM_MODEL, MAX_TOOL_ROUNDS
+from config import GROQ_API_KEY, HISTORY_TURNS, LLM_MODEL, MAX_TOOL_ROUNDS
 from tools import lookup_plant, get_seasonal_conditions
 
 _client = Groq(api_key=GROQ_API_KEY)
@@ -104,7 +104,7 @@ def run_agent(user_message: str, history: list) -> str:
     """
     Run the plant care agent for one user turn and return its response.
 
-    TODO — Milestone 2:
+    Milestone 2:
 
     The agent loop follows a specific pattern that you'll implement here. Read
     specs/agent-loop-spec.md carefully before writing any code — understand the
@@ -128,4 +128,43 @@ def run_agent(user_message: str, history: list) -> str:
 
     Before writing code, complete specs/agent-loop-spec.md.
     """
-    return "🌱 Agent not yet implemented. Complete Milestone 2 to activate the Plant Advisor."
+    messages = [{"role": "system", "content": SYSTEM_PROMPT}]
+
+    if history:
+        recent = history[-(HISTORY_TURNS * 2):]
+        for turn in recent:
+            messages.append({"role": turn["role"], "content": turn["content"]})
+
+    messages.append({"role": "user", "content": user_message})
+
+    for step in range(MAX_TOOL_ROUNDS):
+        response = _client.chat.completions.create(
+            messages=messages,
+            tools=TOOL_DEFINITIONS,
+            model=LLM_MODEL
+        )
+        message = response.choices[0].message
+
+        messages.append(message)
+
+        if not message.tool_calls:
+            return message.content
+
+        for tool_call in message.tool_calls:
+            tool_name = tool_call.function.name
+            tool_args = json.loads(tool_call.function.arguments) or {}
+            tool_result = dispatch_tool(tool_name, tool_args)
+
+            if tool_result is None:
+                tool_result = (
+                    "Something went wrong on my end — "
+                    "I didn't receive a response. Please try again."
+                )
+
+            messages.append({
+                "role": "tool",
+                "tool_call_id": tool_call.id,
+                "content": tool_result,
+            })
+
+    return "The agent has hit the round limit without an answer."
