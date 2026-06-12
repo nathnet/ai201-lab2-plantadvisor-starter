@@ -1,7 +1,7 @@
 import json
 from groq import Groq
 from config import GROQ_API_KEY, HISTORY_TURNS, LLM_MODEL, MAX_TOOL_ROUNDS
-from tools import lookup_plant, get_seasonal_conditions
+from tools import lookup_plant, get_seasonal_conditions, get_plant_list
 
 _client = Groq(api_key=GROQ_API_KEY)
 
@@ -58,6 +58,21 @@ TOOL_DEFINITIONS = [
             },
         },
     },
+    {
+        "type": "function",
+        "function": {
+            "name": "get_plant_list",
+            "description": (
+                "Get the names and difficulty levels of all plants in the database. "
+                "Use this when the user asks what plants are available, or wants a recommendation based on difficulty."
+            ),
+            "parameters": {
+                "type": "object",
+                "properties": {},
+                "required": [],
+            },
+        },
+    },
 ]
 
 # ──────────────────────────────────────────────
@@ -90,6 +105,8 @@ def dispatch_tool(tool_name: str, tool_args: dict) -> str:
         result = lookup_plant(tool_args["plant_name"])
     elif tool_name == "get_seasonal_conditions":
         result = get_seasonal_conditions(tool_args.get("season"))
+    elif tool_name == "get_plant_list":
+        result = get_plant_list()
     else:
         result = {"error": f"Unknown tool: {tool_name}"}
     print(f"  ← Result: {json.dumps(result)[:120]}{'...' if len(json.dumps(result)) > 120 else ''}")
@@ -167,4 +184,4 @@ def run_agent(user_message: str, history: list) -> str:
                 "content": tool_result,
             })
 
-    return "The agent has hit the round limit without an answer."
+    return "The agent hit the thought step limit without reaching an answer."
